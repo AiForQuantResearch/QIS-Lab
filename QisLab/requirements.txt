@@ -1,7 +1,6 @@
-pip>=24.0
-streamlit>=1.38
-yfinance>=0.2.50
-pandas>=2.2
-numpy>=1.26
-plotly>=5.23
-pickle
+streamlit==1.51.0
+yfinance==0.2.66
+pandas==2.3.3
+numpy==2.3.4
+plotly==6.4.0
+requests>=2.31
