@@ -1,8 +1,6 @@
-streamlit
-yfinance
-pandas
-numpy
-plotly
-os-sys
-pickle5
-python-dateutil
+pip>=24.0
+streamlit>=1.38
+yfinance>=0.2.50
+pandas>=2.2
+numpy>=1.26
+plotly>=5.23
