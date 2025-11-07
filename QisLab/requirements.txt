@@ -1,3 +1,8 @@
 streamlit
+yfinance
+pandas
+numpy
 plotly
-pytz
+os-sys
+pickle5
+python-dateutil
