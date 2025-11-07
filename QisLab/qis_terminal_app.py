@@ -6,6 +6,11 @@ try:
     import plotly.graph_objects as go
     import plotly.express as px
     import os, pickle, datetime
+    from pathlib import Path
+    import pickle
+    from pathlib import Path
+
+
 except ModuleNotFoundError as e:
     import sys
     sys.exit(f"Missing module: {e.name}. Please install it with 'pip install {e.name}'")
@@ -18,48 +23,41 @@ st.set_page_config(layout="wide", page_title="QIS Lab — AIQR Indices")
 # =========================
 # Sidebar -> Logo & Description
 # =========================
-with st.sidebar:
-    showed_any_logo = False
-    if os.path.exists("Logo.JPG"):
-        try:
-            st.image("Logo.JPG", use_column_width=True)
-            showed_any_logo = True
-        except Exception:
-            pass
-    if os.path.exists("Logo.png"):
-        try:
-            st.image("Logo.png", use_column_width=True)
-            showed_any_logo = True
-        except Exception:
-            pass
-    if not showed_any_logo:
-        st.write("")
+def show_logo(name: str):
+    try:
+        p = _local_path(name)
+        st.image(str(p), use_column_width=True)
+        return True
+    except Exception:
+        return False
 
-    st.markdown("### Ai for Quant Research")
+LOGO_PATH = Path(__file__).parent / "Logo.JPG"   # chemin absolu FIABLE
+
+with st.sidebar:
+    #st.caption(f"Logo path: {LOGO_PATH}")
+    st.image(str(LOGO_PATH), use_column_width=True)
+    st.markdown("## Ai for Quant Research")
     st.markdown(
         """
-        An independent institute dedicated to advancing research in Quantitative Investment Strategies through artificial intelligence and systematic approaches.
+        An independent institute dedicated to advancing research in Quantitative Investment Strategies
+        through artificial intelligence and systematic approaches.
         """
     )
 
 # =========================
 # Header
 # =========================
-st.markdown(
-    """<h1 style='background-color:#00C29A; color:white; padding:10px; margin:0;text-align:center;border-radius:12px;'>
-    Ai For Quant Research QIS Lab
-    </h1>""",
-    unsafe_allow_html=True
-)
+st.markdown("""<h1 style='background-color:#00C29A; color:white; padding:10px; margin:0;text-align:center;border-radius:12px;'>Ai For Quant Research QIS Lab</h1>""",unsafe_allow_html=True)
 
 # =========================
 # Tabs
 # =========================
-tabs = st.tabs(["Systematic Gold Index", "Precious Metal Index", "Crypto Factor", "Trend Following", "Optimized Portfolio"])
+tabs = st.tabs(["Systematic Gold Index", "Precious Metal Index", "Crypto Factor", "Trend Following", "Systematic Index Trading", "Optimized Portfolio"])
 
 # =========================
 # Helpers
 # =========================
+
 @st.cache_data(show_spinner=False)
 def get_close(tickers, start, end):
     data = yf.download(tickers, start=start, end=end, auto_adjust=True, progress=False)["Close"]
@@ -137,6 +135,24 @@ def fig_rolling_corr_strategies(ret_df: pd.DataFrame, pairs: list[tuple[str,str]
     fig.update_xaxes(domain=[0.0, 0.80])
     return fig
 
+def _local_path(fname: str) -> Path:
+    # dossier où se trouve *ce* script
+    here = Path(__file__).parent
+    # essais robustes : dossier du script d'abord, puis cwd (au cas où)
+    candidates = [here / fname, Path.cwd() / fname]
+    for p in candidates:
+        if p.exists():
+            return p
+    # message utile en cas d'échec
+    raise FileNotFoundError(f"Introuvable: {fname} dans {candidates}")
+
+def load_pickle_local(fname: str):
+    p = _local_path(fname)
+    with p.open("rb") as f:
+        return pickle.load(f)
+
+
+
 # =============================
 # TAB 0 — Systematic Gold Index
 # =============================
@@ -175,19 +191,16 @@ with tabs[0]:
     """, unsafe_allow_html=True)
     top_log_scale = st.checkbox("Log scale", value=True, key="top_log_scale")
 
-    equity_all_dict, gold_dict = None, None
-    if os.path.exists("equity_all.pkl"):
-        try:
-            with open("equity_all.pkl", "rb") as f:
-                equity_all_dict = pickle.load(f)
-        except Exception as e:
-            st.warning(f"Erreur lecture equity_all.pkl : {e}")
-    if os.path.exists("Gold.pkl"):
-        try:
-            with open("Gold.pkl", "rb") as f:
-                gold_dict = pickle.load(f)
-        except Exception as e:
-            st.warning(f"Erreur lecture Gold.pkl : {e}")
+    equity_all_dict = gold_dict = None
+    try:
+        equity_all_dict = load_pickle_local("equity_all.pkl")
+    except Exception as e:
+        st.warning(f"equity_all.pkl : {e}")
+
+    try:
+        gold_dict = load_pickle_local("Gold.pkl")
+    except Exception as e:
+        st.warning(f"Gold.pkl : {e}")
 
     # Build PKL indices dataframe
     df_idx = None
@@ -415,19 +428,17 @@ with tabs[1]:
     """, unsafe_allow_html=True)
     top_log_scale_pm = st.checkbox("Log scale", value=True, key="top_log_scale_pm")
 
-    equity_all_pm, dbp_dict = None, None
-    if os.path.exists("equity_all_precious_metal.pkl"):
-        try:
-            with open("equity_all_precious_metal.pkl", "rb") as f:
-                equity_all_pm = pickle.load(f)
-        except Exception as e:
-            st.warning(f"Erreur lecture equity_all_precious_metal.pkl : {e}")
-    if os.path.exists("DBP.pkl"):
-        try:
-            with open("DBP.pkl", "rb") as f:
-                dbp_dict = pickle.load(f)
-        except Exception as e:
-            st.warning(f"Erreur lecture DBP.pkl : {e}")
+    try:
+        equity_all_pm = load_pickle_local("equity_all_precious_metal.pkl")
+    except Exception as e:
+        equity_all_pm = None
+        st.warning(f"equity_all_precious_metal.pkl : {e}")
+
+    try:
+        dbp_dict = load_pickle_local("DBP.pkl")
+    except Exception as e:
+        dbp_dict = None
+        st.warning(f"DBP.pkl : {e}")
 
     df_idx_pm = None
     if isinstance(equity_all_pm, dict) and isinstance(dbp_dict, dict):
@@ -616,4 +627,6 @@ with tabs[2]:
 with tabs[3]:
     st.info("Trend Following — Very soon!")
 with tabs[4]:
+    st.info("Systematic Index Trading — Very soon!")
+with tabs[5]:
     st.info("Optimized Portfolio — Very soon!")
