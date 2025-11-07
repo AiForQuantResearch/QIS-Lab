@@ -1,19 +1,18 @@
-try:
-    import streamlit as st
-    import yfinance as yf
-    import pandas as pd
-    import numpy as np
-    import plotly.graph_objects as go
-    import plotly.express as px
-    import os, pickle, datetime
-    from pathlib import Path
-    import pickle
-    from pathlib import Path
+import sys
+import importlib
 
+# --- imports sûrs après validation ---
+import streamlit as st
+import yfinance as yf
+import pandas as pd
+import numpy as np
 
-except ModuleNotFoundError as e:
-    import sys
-    sys.exit(f"Missing module: {e.name}. Please install it with 'pip install {e.name}'")
+import plotly.graph_objects as go
+import plotly.express as px
+import os, pickle, datetime
+from pathlib import Path
+import pickle
+from pathlib import Path
 
 # =========================
 # Page config
